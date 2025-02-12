@@ -1,0 +1,5 @@
+datasets
+trl
+transformers
+liger_kernel
+flash-attn
