@@ -43,7 +43,6 @@ LAUNCHER="accelerate launch \
     --main_process_port=$MASTER_PORT \
     --rdzv_backend c10d \
     --deepspeed_config_file ./ds_config.json \
-    --deepspeed_hostfile ./hostfile \
     --deepspeed_multinode_launcher standard \
     --dynamo_backend no \
     --use_deepspeed"
