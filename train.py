@@ -6,12 +6,12 @@ from liger_kernel.transformers import AutoLigerKernelForCausalLM
 
 CONFIG = {
     "model_name": "mistralai/Mistral-Small-24B-Instruct-2501",
-    "dataset_name": "voidful/zh-s1K-1.1",
+    "dataset_name": "voidful/reasoning_gemini_300k",
     "train_split": "train",
-    "response_template": "<think>",
-    "max_seq_length": 16384,
-    "learning_rate": 5e-5,
-    "num_train_epochs": 7,
+    "response_template": "Response:",
+    "max_seq_length": 4096,
+    "learning_rate": 5e-6,
+    "num_train_epochs": 6,
     "per_device_train_batch_size": 1,
     "gradient_accumulation_steps": 10,
     "warmup_steps": 10,
@@ -32,6 +32,7 @@ CONFIG = {
 def load_model_and_tokenizer(model_name):
     model = AutoLigerKernelForCausalLM.from_pretrained(
         model_name,
+        low_cpu_mem_usage=True,
         attn_implementation="flash_attention_2",
         trust_remote_code=True,
         use_cache=False,
@@ -51,9 +52,9 @@ def load_model_and_tokenizer(model_name):
 # Prompt Formatting Function
 def formatting_prompts_func(examples):
     texts = []
-    for input_text, output_reason, output_result in zip(examples["zh_question"],
-                                                        examples["zh_gemini_thinking_trajectory"],
-                                                        examples['zh_gemini_attempt']):
+    for input_text, output_reason, output_result in zip(examples["message"],
+                                                        examples["reasoning"],
+                                                        examples['answer']):
         if not input_text or not output_reason:
             raise ValueError("Input or output text is empty.")
 
@@ -62,7 +63,7 @@ def formatting_prompts_func(examples):
             {"role": "system",
              "content": "You are a helpful and harmless assistant. You should think step-by-step."},
             {"role": "user", "content": prompt},
-            {"role": "assistant", "content": f"<think>{output_reason}</think>{output_result}<|eot_id|>"},
+            {"role": "assistant", "content": f"Response: <think>{output_reason}</think>{output_result}<|eot_id|>"},
         ]
         texts.append(tokenizer.apply_chat_template(
             messages,
